@@ -23,7 +23,7 @@ import (
 func main() {
 	router := rue.NewRouter()
 	router.HandleFunc("POST", "/path/:para1/:para2", handle)
-    println("Listening on port 8080...")
+	println("Listening on port 8080...")
 	panic(http.ListenAndServe(":8080", router))
 }
 
