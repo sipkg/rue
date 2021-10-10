@@ -1,7 +1,6 @@
 package rue
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -151,10 +150,10 @@ func TestWay(t *testing.T) {
 	for _, test := range tests {
 		r := NewRouter()
 		match := false
-		var ctx context.Context
+		// var ctx context.Context
 		r.Handle(test.RouteMethod, test.RoutePattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			match = true
-			ctx = r.Context()
+			// ctx = r.Context()
 		}))
 		req, err := http.NewRequest(test.Method, test.Path, nil)
 		if err != nil {
@@ -168,7 +167,7 @@ func TestWay(t *testing.T) {
 		if len(test.Params) > 0 {
 			for expK, expV := range test.Params {
 				// check using helper
-				actualValStr := Param(ctx, expK)
+				actualValStr := Param(req, expK)
 				if actualValStr != expV {
 					t.Errorf("Param: context value %s expected \"%s\" but was \"%s\"", expK, expV, actualValStr)
 				}
@@ -226,9 +225,9 @@ func TestGetFormParameters(t *testing.T) {
 	r := NewRouter()
 	var h, q, z string
 	r.Handle(http.MethodGet, "/:h/s", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h = Param(r.Context(), "h")
-		q = Param(r.Context(), "q")
-		z = Param(r.Context(), "z")
+		h = Param(r, "h")
+		q = Param(r, "q")
+		z = Param(r, "z")
 	}))
 	r.ServeHTTP(httptest.NewRecorder(), req)
 	if h != "happy" {
@@ -253,9 +252,9 @@ func TestPostFormParameters(t *testing.T) {
 	r := NewRouter()
 	var h, q, z string
 	r.Handle(http.MethodPost, "/:h/s", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h = Param(r.Context(), "h")
-		q = Param(r.Context(), "q")
-		z = Param(r.Context(), "z")
+		h = Param(r, "h")
+		q = Param(r, "q")
+		z = Param(r, "z")
 	}))
 	r.ServeHTTP(httptest.NewRecorder(), req)
 	if h != "happy" {

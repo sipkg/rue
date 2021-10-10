@@ -1,20 +1,14 @@
 // Package rue provides a simple router based on Mat Ryer's way package.
-// It extends way by adding all form parameters to the context.
-// Multiple values for the same form parameter are concatenate with
-// the semi-colon separator.
-// The request host prefix is also added to the context with the _host key.
+// It differs from _way_ by adding the path parameters to the request values
+// instead of using the request context. Multiple values for the same form
+// parameter are concatenate with the semi-colon separator. The host prefix
+// is also added to the request values with the _host special key.
 package rue
 
 import (
-	"context"
 	"net/http"
 	"strings"
 )
-
-// rueContextKey is the context key type for storing
-// parameters (from path or form) in context.Context.
-// Also used to store host name with "_host" special key.
-type rueContextKey string
 
 // Router routes HTTP requests.
 type Router struct {
@@ -58,30 +52,46 @@ func (r *Router) HandleFunc(method, pattern string, fn http.HandlerFunc) {
 // ServeHTTP routes the incoming http.Request based on method and path
 // extracting path parameters as it goes.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+
+	// prepare the req values : it's important to call it before adding values
+	req.ParseForm()
+
+	// store the host prefix
+	host := strings.Split(req.Host, ".")[0]
+	req.Form.Add("_host", host)
+
 	method := strings.ToLower(req.Method)
 	segs := r.pathSegments(req.URL.Path)
 	for _, route := range r.routes {
 		if route.method != method && route.method != "*" {
 			continue
 		}
-		if ctx, ok := route.match(req.Context(), r, segs); ok {
-			ctx = route.form(ctx, req) // add form parameters to context
-			ctx = route.host(ctx, req) // add host prefix to context
-			route.handler.ServeHTTP(w, req.WithContext(ctx))
+		if ok := route.match(req, r, segs); ok {
+			route.handler.ServeHTTP(w, req)
 			return
 		}
 	}
 	r.NotFound.ServeHTTP(w, req)
 }
 
-// Param gets the path or form parameter from the specified context.
-// Returns an empty string if the parameter was not found.
-func Param(ctx context.Context, param string) string {
-	vStr, ok := ctx.Value(rueContextKey(param)).(string)
-	if !ok {
+// Param returns the parameter's value from the request or the empty
+// string if the parameter was not found.
+// The parameter can be a path parameter or a form value.
+// Returns a semi-colon separated value for same key multi-values.
+func Param(req *http.Request, param string) string {
+	values := req.Form[param]
+	if len(values) == 0 {
 		return ""
 	}
-	return vStr
+	var value string
+	for i, v := range values {
+		if i > 0 {
+			value = value + ";" + v
+		} else {
+			value = v
+		}
+	}
+	return value
 }
 
 type route struct {
@@ -91,62 +101,30 @@ type route struct {
 	prefix  bool
 }
 
-func (r *route) match(ctx context.Context, router *Router, segs []string) (context.Context, bool) {
+func (r *route) match(req *http.Request, router *Router, segs []string) bool {
 	if len(segs) > len(r.segs) && !r.prefix {
-		return nil, false
+		return false
 	}
+
+	// parse the path for matching and storing path parameters if any
 	for i, seg := range r.segs {
 		if i > len(segs)-1 {
-			return nil, false
+			return false
 		}
-		isParam := false
 		if strings.HasPrefix(seg, ":") {
-			isParam = true
 			seg = strings.TrimPrefix(seg, ":")
-		}
-		if !isParam { // verbatim check
-			if strings.HasSuffix(seg, "...") {
-				if strings.HasPrefix(segs[i], seg[:len(seg)-3]) {
-					return ctx, true
-				}
-			}
-			if seg != segs[i] {
-				return nil, false
-			}
-		}
-		if isParam {
-			ctx = context.WithValue(ctx, rueContextKey(seg), segs[i])
-		}
-	}
-	return ctx, true
-}
-
-// Add all form parameters to the context.
-// Multiple values are concatenate with semi-colon separator.
-func (r *route) form(ctx context.Context, req *http.Request) context.Context {
-	err := req.ParseForm()
-	if err != nil {
-		return ctx
-	}
-	var value string
-	for k, values := range req.Form {
-		if len(values) == 0 {
+			req.Form.Add(seg, segs[i])
 			continue
 		}
-		for i, v := range values {
-			if i > 0 {
-				value = value + ";" + v
-			} else {
-				value = v
+		// verbatim check
+		if strings.HasSuffix(seg, "...") {
+			if strings.HasPrefix(segs[i], seg[:len(seg)-3]) {
+				return true
 			}
 		}
-		ctx = context.WithValue(ctx, rueContextKey(k), value)
+		if seg != segs[i] {
+			return false
+		}
 	}
-	return ctx
-}
-
-func (r *route) host(ctx context.Context, req *http.Request) context.Context {
-	host := strings.Split(req.Host, ".")[0]
-	ctx = context.WithValue(ctx, rueContextKey("_host"), host)
-	return ctx
+	return true
 }
