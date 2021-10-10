@@ -66,7 +66,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if route.method != method && route.method != "*" {
 			continue
 		}
-		if ok := route.match(req, r, segs); ok {
+		if route.match(req, r, segs) {
 			route.handler.ServeHTTP(w, req)
 			return
 		}
