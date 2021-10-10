@@ -95,3 +95,62 @@ this examples. Someting like :
 ```sh
 go mod init rue_example && go mod tidy && go run .
 ```
+
+## Usage
+
+* Use `NewRouter` to make a new `Router`
+* Call `Handle` and `HandleFunc` to add handlers
+* Specify HTTP method and path pattern for each route
+* Use `Param` function to get the path parameters from the context
+
+```go
+func main() {
+	router := rue.NewRouter()
+
+	router.HandleFunc("GET", "/music/:band/:song", handleReadSong)
+	router.HandleFunc("PUT", "/music/:band/:song", handleUpdateSong)
+	router.HandleFunc("DELETE", "/music/:band/:song", handleDeleteSong)
+
+	panic(http.ListenAndServe(":8080", router))
+}
+
+func handleReadSong(w http.ResponseWriter, r *http.Request) {
+	band := rue.Param(r, "band")
+	song := rue.Param(r, "song")
+	// use 'band' and 'song' parameters...
+}
+```
+
+* Prefix matching
+
+To match any path that has a specific prefix, use the `...` prefix indicator:
+
+```go
+func main() {
+	router := rue.NewRouter()
+
+	router.HandleFunc("GET", "/images...", handleImages)
+	panic(http.ListenAndServe(":8080", router))
+}
+```
+
+In the above example, the following paths will match:
+
+* `/images`
+* `/images/`
+* `/images/one/two/three.jpg`
+
+* Set `Router.NotFound` to handle 404 errors manually
+
+```go
+func main() {
+	router := rue.NewRouter()
+	
+	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "This is not the page you are looking for")
+	})
+	
+	panic(http.ListenAndServe(":8080", router))
+}
+```
