@@ -1,8 +1,8 @@
-// Package rue provides a simple router based on Mat Ryer's way package.
+// Package rue provides a simple router based on Mat Ryer's _way_ package.
 // It differs from _way_ by adding the path parameters to the request values
 // instead of using the request context. Multiple values for the same form
 // parameter are concatenate with the semi-colon separator. The host prefix
-// is also added to the request values with the _host special key.
+// is also added to the request values with the *_host* special key.
 package rue
 
 import (
