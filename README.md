@@ -1,13 +1,16 @@
 # Rue
+
 Minimalistic Go http router based on [Mat Ryer's way](https://github.com/matryer/way)
 
 It differs from _way_ by adding the path parameters to the form values.
 To retrieve them, use the rue.Param function :
+
 ```go
 value := rue.Param(req, parameter)
 ```
 
 For exampe, with the url pattern _/path/:param1_ :
+
 ```go
 value := rue.Param(req,"param1")
 ```
@@ -16,6 +19,7 @@ You can also retrieve all form values in the same manner.
 
 Multiple values are concatenate with the semi-colon separator. 
 For example, for the url query _/path?m=a&m=b&m=c_ :
+
 ```go
 result := rue.Param(req, "m")
 fmt.Println(result) // a;b;c
@@ -23,10 +27,21 @@ fmt.Println(result) // a;b;c
 
 The request host prefix is also added to the form values with the *_host* key.
 For example, for a complete url like _https://something.domain.ltd/query_ :
+
 ```go
 h := rue.Param(req, "_host")
 fmt.Printf("The host is %s", h) // The host is something
 ```
+
+Finally, you can also specify a static file folder to be served by the router :
+
+```
+router := rue.NewRouter()
+router.HandleStatic("/", "./static/")
+panic(http.ListenAndServe(":8080", router))
+```
+
+**Important rule : the static handler must be the last added handler to the router.**
 
 ## Examples
 
@@ -99,9 +114,10 @@ go mod init rue_example && go mod tidy && go run .
 ## Usage
 
 * Use `NewRouter` to make a new `Router`
-* Call `Handle` and `HandleFunc` to add handlers
-* Specify HTTP method and path pattern for each route
-* Use `Param` function to get the path parameters from the context
+* Call `Handle` and `HandleFunc` to add handlers.
+* Call `HandleStatic` to add a file system handler.
+* Specify HTTP method and path pattern for each route.
+* Use `Param` function to get the path parameters from the context.
 
 ```go
 func main() {
@@ -110,6 +126,7 @@ func main() {
 	router.HandleFunc("GET", "/music/:band/:song", handleReadSong)
 	router.HandleFunc("PUT", "/music/:band/:song", handleUpdateSong)
 	router.HandleFunc("DELETE", "/music/:band/:song", handleDeleteSong)
+	router.HandleStatic("/", "./static")
 
 	panic(http.ListenAndServe(":8080", router))
 }

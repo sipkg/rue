@@ -49,6 +49,12 @@ func (r *Router) HandleFunc(method, pattern string, fn http.HandlerFunc) {
 	r.Handle(method, pattern, fn)
 }
 
+// HandleStatic handles the static files in a folder and its sub folders
+// Important : Must be the last handler added to the router
+func (r *Router) HandleStatic(pattern string, fsroot string) {
+	r.Handle("*", pattern+"...", http.FileServer(http.Dir(fsroot)))
+}
+
 // ServeHTTP routes the incoming http.Request based on method and path
 // extracting path parameters as it goes.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
