@@ -9,7 +9,7 @@ To retrieve them, use the rue.Param function :
 value := rue.Param(req, parameter)
 ```
 
-For exampe, with the url pattern _/path/:param1_ :
+For example, with the url pattern _/path/:param1_ :
 
 ```go
 value := rue.Param(req,"param1")
@@ -25,10 +25,12 @@ result := rue.Param(req, "m")
 fmt.Println(result) // a;b;c
 ```
 
-The request host prefix is also added to the form values with the *_host* key.
-For example, for a complete url like _https://something.domain.ltd/query_ :
+The request FQDN and host prefix are also added to the form values with respectively the *_fqdn* and the *_host* key.
+For example, for a complete url like _https://something.domain.tld/query_ :
 
 ```go
+f := rue.Param(req, "_fqdn")
+fmt.Printf("The FQDN is %s", f) // The FQDN is something.domain.tld
 h := rue.Param(req, "_host")
 fmt.Printf("The host is %s", h) // The host is something
 ```

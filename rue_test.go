@@ -146,7 +146,7 @@ var tests = []struct {
 	},
 }
 
-func TestWay(t *testing.T) {
+func TestRue(t *testing.T) {
 	for _, test := range tests {
 		r := NewRouter()
 		match := false
@@ -265,6 +265,26 @@ func TestPostFormParameters(t *testing.T) {
 	}
 	if z != "bar" {
 		t.Errorf(`Param("z") = %q, want "bar"`, z)
+	}
+}
+
+func TestGetHostFQDN(t *testing.T) {
+	req, err := http.NewRequest("GET", "http://somehost.domain.tld/hello", nil)
+	if err != nil {
+		t.Errorf("NewRequest: %s", err)
+	}
+	r := NewRouter()
+	var h, f string
+	r.HandleFunc("GET", "/hello", func(w http.ResponseWriter, r *http.Request) {
+		h = Param(r, "_host")
+		f = Param(r, "_fqdn")
+	})
+	r.ServeHTTP(httptest.NewRecorder(), req)
+	if h != "somehost" {
+		t.Errorf(`Param("h") = %q, want "somehost"`, h)
+	}
+	if f != "somehost.domain.tld" {
+		t.Errorf(`Param("f") = %q, want "somehost.domain.tld"`, f)
 	}
 }
 
