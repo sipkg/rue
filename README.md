@@ -25,7 +25,7 @@ result := rue.Param(req, "m")
 fmt.Println(result) // a;b;c
 ```
 
-The request FQDN and host prefix are also added to the form values with respectively the *_fqdn* and the *_host* key.
+The request FQDN (without port) and host prefix are also added to the form values with respectively the *_fqdn* and the *_host* key.
 For example, for a complete url like _https://something.domain.tld/query_ :
 
 ```go

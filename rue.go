@@ -62,9 +62,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// prepare the req values : it's important to call it before adding values
 	req.ParseForm()
 
-	// store the FQDN 
-	req.Form.Add("_fqdn", req.Host)
-	
+	// store the FQDN without port eventually
+	fqdn := strings.Split(req.Host, ":")[0]
+	req.Form.Add("_fqdn", fqdn)
+
 	// store the host prefix
 	host := strings.Split(req.Host, ".")[0]
 	req.Form.Add("_host", host)

@@ -268,23 +268,35 @@ func TestPostFormParameters(t *testing.T) {
 	}
 }
 
-func TestGetHostFQDN(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://somehost.domain.tld/hello", nil)
-	if err != nil {
-		t.Errorf("NewRequest: %s", err)
-	}
-	r := NewRouter()
-	var h, f string
-	r.HandleFunc("GET", "/hello", func(w http.ResponseWriter, r *http.Request) {
-		h = Param(r, "_host")
-		f = Param(r, "_fqdn")
-	})
-	r.ServeHTTP(httptest.NewRecorder(), req)
-	if h != "somehost" {
-		t.Errorf(`Param("h") = %q, want "somehost"`, h)
-	}
-	if f != "somehost.domain.tld" {
-		t.Errorf(`Param("f") = %q, want "somehost.domain.tld"`, f)
+var hostFqdnTests = []struct {
+	url  string
+	host string
+	fqdn string
+}{
+	{"http://somehost.domain.tld/", "somehost", "somehost.domain.tld"},
+	{"http://otherhost.domain.tld:8080/", "otherhost", "otherhost.domain.tld"},
+	{"http://domain.tld/", "domain", "domain.tld"},
+}
+
+func TestHostFQDN(t *testing.T) {
+	for _, test := range hostFqdnTests {
+		req, err := http.NewRequest("GET", test.url, nil)
+		if err != nil {
+			t.Errorf("NewRequest: %s", err)
+		}
+		r := NewRouter()
+		var h, f string
+		r.HandleFunc("GET", "/", func(w http.ResponseWriter, r *http.Request) {
+			h = Param(r, "_host")
+			f = Param(r, "_fqdn")
+		})
+		r.ServeHTTP(httptest.NewRecorder(), req)
+		if h != test.host {
+			t.Errorf(`Param("h") = %q, want "%s"`, h, test.host)
+		}
+		if f != test.fqdn {
+			t.Errorf(`Param("f") = %q, want "%s"`, f, test.fqdn)
+		}
 	}
 }
 
