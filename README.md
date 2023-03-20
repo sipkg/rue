@@ -119,7 +119,9 @@ go mod init rue_example && go mod tidy && go run .
 * Call `Handle` and `HandleFunc` to add handlers.
 * Call `HandleStatic` to add a file system handler.
 * Specify HTTP method and path pattern for each route.
-* Use `Param` function to get the path parameters from the context.
+* Use `Param` function to get the parameters value from the context.
+* Use `Params` function to get the list of all used parameters names (including
+  special parameters _fqdn and _host).
 
 ```go
 func main() {
