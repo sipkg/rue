@@ -145,19 +145,15 @@ func handleReadSong(w http.ResponseWriter, r *http.Request) {
 To match any path that has a specific prefix, use the `...` prefix indicator:
 
 ```go
-func main() {
 	router := rue.NewRouter()
-
 	router.HandleFunc("GET", "/images...", handleImages)
-	panic(http.ListenAndServe(":8080", router))
-}
+	/* In the above example, the following paths will match:
+		- `/images`
+		- `/images/`
+		- `/images/one/two/three.jpg`
+	*/
 ```
 
-In the above example, the following paths will match:
-
-* `/images`
-* `/images/`
-* `/images/one/two/three.jpg`
 
 * Set `Router.NotFound` to handle 404 errors manually
 

@@ -172,6 +172,18 @@ func TestRue(t *testing.T) {
 					t.Errorf("Param: context value %s expected \"%s\" but was \"%s\"", expK, expV, actualValStr)
 				}
 			}
+			// Test Params function
+			keys := Params(req)
+			// we have 2 more parameters (fqdn and host)
+			if len(keys) != len(test.Params)+2 {
+				t.Errorf("Params: mismatch parameters number expected %d but was %d", len(test.Params), len(keys))
+			}
+			// check we get same value for each key
+			for _, k := range keys {
+				if Param(req, k) != test.Params[k] {
+					t.Errorf("Params: mismatch value for key %s expected %s got %s", k, test.Params[k], Param(req, k))
+				}
+			}
 		}
 	}
 }

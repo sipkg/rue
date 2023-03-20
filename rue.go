@@ -104,6 +104,15 @@ func Param(req *http.Request, param string) string {
 	return value
 }
 
+// Params returns the parameters list
+func Params(req *http.Request) []string {
+	keys := make([]string, 0, len(req.Form))
+	for k := range req.Form {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 type route struct {
 	method  string
 	segs    []string
